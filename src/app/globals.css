@@ -44,3 +44,34 @@ textarea {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px #dbeafe;
 }
+
+@media print {
+  body {
+    background: white;
+  }
+
+  aside,
+  header,
+  button {
+    display: none !important;
+  }
+
+  .lg\:pl-64 {
+    padding-left: 0 !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  #printable-report {
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #printable-report * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
