@@ -15,7 +15,7 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
-import SupervisorShell from "../.././components/supervisor/SupervisorShell";
+import SupervisorShell from "../../../components/supervisor/SupervisorShell";
 
 type TimesheetStatus =
   | "Pending"
