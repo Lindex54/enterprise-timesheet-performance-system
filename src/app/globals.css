@@ -75,3 +75,28 @@ textarea {
     -webkit-print-color-adjust: exact;
   }
 }
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+@keyframes activity-notification-countdown {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.activity-notification-progress {
+  animation: activity-notification-countdown 4.5s linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-notification-progress {
+    animation: none;
+  }
+}

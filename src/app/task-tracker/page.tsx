@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -12,6 +12,7 @@ import {
   Search,
 } from "lucide-react";
 import DashboardShell from "../../components/layout/DashboardShell";
+import { calculateOverallCompletion } from "../../../lib/completion-progress";
 
 type TaskStatus =
   | "Not Started"
@@ -34,74 +35,31 @@ type Task = {
   hoursWorked: number;
 };
 
-const initialTasks: Task[] = [
-  {
-    id: 1,
-    taskCode: "TSK-001",
-    title: "Update university website content",
-    project: "University Website",
-    assignedDate: "2026-07-20",
-    dueDate: "2026-07-28",
-    priority: "High",
-    status: "In Progress",
-    progress: 90,
-    hoursWorked: 10,
-  },
-  {
-    id: 2,
-    taskCode: "TSK-002",
-    title: "Prepare timesheet system documentation",
-    project: "Timesheet System",
-    assignedDate: "2026-07-22",
-    dueDate: "2026-07-30",
-    priority: "High",
-    status: "In Progress",
-    progress: 70,
-    hoursWorked: 8,
-  },
-  {
-    id: 3,
-    taskCode: "TSK-003",
-    title: "Review faculty website interface",
-    project: "Faculty Website",
-    assignedDate: "2026-07-18",
-    dueDate: "2026-07-24",
-    priority: "Medium",
-    status: "Completed",
-    progress: 100,
-    hoursWorked: 5,
-  },
-  {
-    id: 4,
-    taskCode: "TSK-004",
-    title: "Prepare monthly ICT performance report",
-    project: "Performance Reporting",
-    assignedDate: "2026-07-15",
-    dueDate: "2026-07-23",
-    priority: "Urgent",
-    status: "Overdue",
-    progress: 45,
-    hoursWorked: 4,
-  },
-  {
-    id: 5,
-    taskCode: "TSK-005",
-    title: "Upload research publication content",
-    project: "Content Development",
-    assignedDate: "2026-07-25",
-    dueDate: "2026-08-02",
-    priority: "Low",
-    status: "Not Started",
-    progress: 0,
-    hoursWorked: 0,
-  },
-];
+
 
 export default function TaskTrackerPage() {
-  const [tasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
+
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        const response = await fetch("/api/tasks");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message ?? "Unable to load tasks.");
+        setTasks(data.tasks);
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : "Unable to load tasks.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    void loadTasks();
+  }, []);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -139,6 +97,15 @@ export default function TaskTrackerPage() {
           tasks.reduce((total, task) => total + task.progress, 0) /
             tasks.length,
         );
+
+  // Temporary frontend values until timesheet and supervisor modules are connected.
+  const timesheetSubmissionRate = 100;
+  const supervisorApprovalRate = 80;
+  const completion = calculateOverallCompletion({
+    taskCompletionRate: averageProgress,
+    timesheetSubmissionRate,
+    supervisorApprovalRate,
+  });
 
   return (
     <DashboardShell>
@@ -186,11 +153,29 @@ export default function TaskTrackerPage() {
         />
 
         <SummaryCard
-          title="Average progress"
-          value={`${averageProgress}%`}
-          description="Overall task completion"
+          title="Completion progress"
+          value={`${completion.overallRate}%`}
+          description="Combined weighted score"
           icon={CalendarDays}
         />
+      </section>
+
+      <section className="mt-7 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-bold text-slate-900">Overall completion progress</h2>
+            <p className="mt-1 text-sm text-slate-500">Weighted from task completion, timesheet submission, and supervisor approval.</p>
+          </div>
+          <p className="text-3xl font-bold text-blue-600">{completion.overallRate}%</p>
+        </div>
+        <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${completion.overallRate}%` }} />
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <CompletionPart label="Task completion" rate={completion.components.taskCompletionRate} weight="50%" />
+          <CompletionPart label="Timesheet submission" rate={completion.components.timesheetSubmissionRate} weight="30%" />
+          <CompletionPart label="Supervisor approval" rate={completion.components.supervisorApprovalRate} weight="20%" />
+        </div>
       </section>
 
       <section className="mt-7 rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -266,6 +251,12 @@ export default function TaskTrackerPage() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
+              {isLoading && (
+                <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-500">Loading tasks from the database...</td></tr>
+              )}
+              {loadError && (
+                <tr><td colSpan={9} className="px-6 py-12 text-center text-red-600">{loadError}</td></tr>
+              )}
               {filteredTasks.map((task) => (
                 <tr key={task.id} className="hover:bg-slate-50">
                   <td className="min-w-72 px-6 py-4">
@@ -478,4 +469,15 @@ function formatDate(date: string) {
     month: "short",
     year: "numeric",
   }).format(new Date(`${date}T00:00:00`));
+}
+function CompletionPart({ label, rate, weight }: { label: string; rate: number; weight: string }) {
+  return (
+    <div className="rounded-lg bg-slate-50 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-slate-700">{label}</p>
+        <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-bold text-blue-700">Weight {weight}</span>
+      </div>
+      <p className="mt-3 text-2xl font-bold text-slate-900">{Math.round(rate)}%</p>
+    </div>
+  );
 }

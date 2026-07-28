@@ -8,8 +8,14 @@ import DashboardShell from "../../components/layout/DashboardShell";
 import RecentActivities from "../../components/dashboard/RecentActivities";
 import StatCard from "../../components/dashboard/StatCard";
 import TaskProgress from "../../components/dashboard/TaskProgress";
+import { calculateOverallCompletion } from "../../../lib/completion-progress";
 
 export default function DashboardPage() {
+  const completion = calculateOverallCompletion({
+    taskCompletionRate: 90,
+    timesheetSubmissionRate: 100,
+    supervisorApprovalRate: 80,
+  });
   return (
     <DashboardShell>
       <section className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -59,10 +65,16 @@ export default function DashboardPage() {
 
         <StatCard
           title="Completion rate"
-          value="86%"
-          description="Six percent improvement this month"
+          value={`${completion.overallRate}%`}
+          description="Combined weighted completion"
           icon={TrendingUp}
         />
+      </section>
+
+      <section className="mt-4 grid gap-3 sm:grid-cols-3">
+        <CompletionComponent label="Task completion" value={completion.components.taskCompletionRate} weight="50%" />
+        <CompletionComponent label="Timesheet submission" value={completion.components.timesheetSubmissionRate} weight="30%" />
+        <CompletionComponent label="Supervisor approval" value={completion.components.supervisorApprovalRate} weight="20%" />
       </section>
 
       <section className="mt-7 grid gap-6 xl:grid-cols-[1.7fr_1fr]">
@@ -125,5 +137,13 @@ export default function DashboardPage() {
         </article>
       </section>
     </DashboardShell>
+  );
+}
+function CompletionComponent({ label, value, weight }: { label: string; value: number; weight: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
+      <span className="font-medium text-slate-600">{label}</span>
+      <span className="font-bold text-slate-900">{value}% <span className="text-xs text-slate-400">({weight})</span></span>
+    </div>
   );
 }

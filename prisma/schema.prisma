@@ -1,0 +1,308 @@
+﻿generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  EMPLOYEE
+  SUPERVISOR
+  ADMIN
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERN
+  VOLUNTEER
+}
+
+enum ProjectStatus {
+  PLANNED
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum ActivityWorkStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  RETURNED
+}
+
+enum TimesheetStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  RETURNED
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique @db.VarChar(191)
+  passwordHash String    @db.VarChar(255)
+  role         UserRole  @default(EMPLOYEE)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  employee     Employee?
+
+  @@map("users")
+}
+
+model Department {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique @db.VarChar(150)
+  code        String?    @unique @db.VarChar(50)
+  description String?    @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employees   Employee[]
+  projects    Project[]
+
+  @@map("departments")
+}
+
+model Campus {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique @db.VarChar(150)
+  location  String?    @db.VarChar(255)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  employees Employee[]
+
+  @@map("campuses")
+}
+
+model Employee {
+  id                 Int                 @id @default(autoincrement())
+  userId             Int                 @unique
+  employeeNumber     String              @unique @db.VarChar(50)
+  firstName          String              @db.VarChar(100)
+  lastName           String              @db.VarChar(100)
+  phone              String?             @db.VarChar(30)
+  gender             String?             @db.VarChar(30)
+  dateOfBirth        DateTime?           @db.Date
+  address            String?             @db.VarChar(255)
+  jobTitle           String              @db.VarChar(150)
+  employmentType     EmploymentType
+  dateJoined         DateTime            @db.Date
+  profileImageUrl    String?             @db.VarChar(500)
+  departmentId       Int
+  campusId           Int?
+  supervisorId       Int?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  department         Department          @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  campus             Campus?             @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  supervisor         Employee?           @relation("EmployeeSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
+  subordinates       Employee[]          @relation("EmployeeSupervisor")
+  emergencyContacts  EmergencyContact[]
+  assignedTasks      Task[]              @relation("TaskAssignee")
+  createdTasks       Task[]              @relation("TaskAssigner")
+  activities         Activity[]
+  timesheets         Timesheet[]         @relation("EmployeeTimesheets")
+  reviewedTimesheets Timesheet[]         @relation("TimesheetReviewer")
+  performancePeriods PerformancePeriod[]
+
+  @@index([departmentId])
+  @@index([campusId])
+  @@index([supervisorId])
+  @@index([lastName, firstName])
+  @@map("employees")
+}
+
+model EmergencyContact {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  name         String   @db.VarChar(150)
+  phone        String   @db.VarChar(30)
+  relationship String   @db.VarChar(100)
+  isPrimary    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("emergency_contacts")
+}
+
+model Project {
+  id           Int           @id @default(autoincrement())
+  code         String?       @unique @db.VarChar(50)
+  name         String        @unique @db.VarChar(191)
+  description  String?       @db.Text
+  status       ProjectStatus @default(PLANNED)
+  startDate    DateTime?     @db.Date
+  endDate      DateTime?     @db.Date
+  departmentId Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  department   Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  tasks        Task[]
+  activities   Activity[]
+
+  @@index([departmentId])
+  @@index([status])
+  @@map("projects")
+}
+
+model Task {
+  id             Int          @id @default(autoincrement())
+  taskCode       String       @unique @db.VarChar(50)
+  title          String       @db.VarChar(255)
+  description    String?      @db.Text
+  projectId      Int
+  assignedToId   Int
+  assignedById   Int?
+  assignedDate   DateTime     @db.Date
+  dueDate        DateTime     @db.Date
+  priority       TaskPriority @default(MEDIUM)
+  status         TaskStatus   @default(NOT_STARTED)
+  progress       Int          @default(0)
+  estimatedHours Decimal?     @db.Decimal(6, 2)
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  assignedTo     Employee     @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: Restrict)
+  assignedBy     Employee?    @relation("TaskAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+  activities     Activity[]
+
+  @@index([projectId])
+  @@index([assignedToId, status])
+  @@index([assignedById])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model Activity {
+  id               Int                @id @default(autoincrement())
+  employeeId       Int
+  projectId        Int
+  taskId           Int?
+  timesheetId      Int?
+  activityDate     DateTime           @db.Date
+  dueDate          DateTime?          @db.Date
+  startTime        DateTime?          @db.Time(0)
+  endTime          DateTime?          @db.Time(0)
+  workLocation     String?            @db.VarChar(191)
+  evidenceLink     String?            @db.VarChar(1000)
+  title            String             @db.VarChar(255)
+  description      String             @db.Text
+  hours            Decimal            @db.Decimal(6, 2)
+  priority         TaskPriority       @default(MEDIUM)
+  workStatus       ActivityWorkStatus @default(IN_PROGRESS)
+  submissionStatus SubmissionStatus   @default(DRAFT)
+  expectedOutput   String?            @db.Text
+  actualOutput     String?            @db.Text
+  challenges       String?            @db.Text
+  remarks          String?            @db.Text
+  submittedAt      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  employee         Employee           @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  project          Project            @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  task             Task?              @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  timesheet        Timesheet?         @relation(fields: [timesheetId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId, activityDate])
+  @@index([employeeId, dueDate])
+  @@index([projectId])
+  @@index([taskId])
+  @@index([timesheetId])
+  @@index([submissionStatus])
+  @@map("activities")
+}
+
+model Timesheet {
+  id                 Int             @id @default(autoincrement())
+  employeeId         Int
+  month              Int
+  year               Int
+  expectedHours      Decimal         @default(160) @db.Decimal(6, 2)
+  employeeRemarks    String?         @db.Text
+  status             TimesheetStatus @default(DRAFT)
+  submittedAt        DateTime?
+  reviewedAt         DateTime?
+  reviewedById       Int?
+  supervisorFeedback String?         @db.Text
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  employee           Employee        @relation("EmployeeTimesheets", fields: [employeeId], references: [id], onDelete: Restrict)
+  reviewedBy         Employee?       @relation("TimesheetReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  activities         Activity[]
+
+  @@unique([employeeId, month, year])
+  @@index([status])
+  @@index([reviewedById])
+  @@map("timesheets")
+}
+
+model PerformancePeriod {
+  id                Int                 @id @default(autoincrement())
+  employeeId        Int
+  month             Int
+  year              Int
+  overallScore      Decimal?            @db.Decimal(5, 2)
+  classification    String?             @db.VarChar(50)
+  achievements      Json?
+  challenges        Json?
+  supervisorComment String?             @db.Text
+  calculatedAt      DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  employee          Employee            @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  metrics           PerformanceMetric[]
+
+  @@unique([employeeId, month, year])
+  @@map("performance_periods")
+}
+
+model PerformanceMetric {
+  id                  Int               @id @default(autoincrement())
+  performancePeriodId Int
+  name                String            @db.VarChar(150)
+  description         String?           @db.Text
+  score               Decimal           @db.Decimal(5, 2)
+  weight              Decimal           @db.Decimal(5, 2)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  performancePeriod   PerformancePeriod @relation(fields: [performancePeriodId], references: [id], onDelete: Cascade)
+
+  @@unique([performancePeriodId, name])
+  @@index([performancePeriodId])
+  @@map("performance_metrics")
+}
+
+
