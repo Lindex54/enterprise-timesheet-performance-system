@@ -14,6 +14,12 @@ import {
 import DashboardShell from "../../components/layout/DashboardShell";
 import { calculateOverallCompletion } from "../../../lib/completion-progress";
 
+type CompletionRates = {
+  taskCompletionRate: number;
+  timesheetSubmissionRate: number;
+  supervisorApprovalRate: number;
+};
+
 type TaskStatus =
   | "Not Started"
   | "In Progress"
@@ -39,6 +45,11 @@ type Task = {
 
 export default function TaskTrackerPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [completionRates, setCompletionRates] = useState<CompletionRates>({
+    taskCompletionRate: 0,
+    timesheetSubmissionRate: 0,
+    supervisorApprovalRate: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,6 +63,7 @@ export default function TaskTrackerPage() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message ?? "Unable to load tasks.");
         setTasks(data.tasks);
+        setCompletionRates(data.completionComponents);
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : "Unable to load tasks.");
       } finally {
@@ -90,22 +102,8 @@ export default function TaskTrackerPage() {
     (task) => task.status === "Overdue",
   ).length;
 
-  const averageProgress =
-    tasks.length === 0
-      ? 0
-      : Math.round(
-          tasks.reduce((total, task) => total + task.progress, 0) /
-            tasks.length,
-        );
 
-  // Temporary frontend values until timesheet and supervisor modules are connected.
-  const timesheetSubmissionRate = 100;
-  const supervisorApprovalRate = 80;
-  const completion = calculateOverallCompletion({
-    taskCompletionRate: averageProgress,
-    timesheetSubmissionRate,
-    supervisorApprovalRate,
-  });
+  const completion = calculateOverallCompletion(completionRates);
 
   return (
     <DashboardShell>
@@ -481,3 +479,4 @@ function CompletionPart({ label, rate, weight }: { label: string; rate: number; 
     </div>
   );
 }
+

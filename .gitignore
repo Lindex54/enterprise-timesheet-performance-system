@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 /.pnp
 .pnp.*
@@ -50,6 +50,12 @@ Thumbs.db
 # Editor settings
 .vscode/
 .idea/
+
+
+# Local AI agent settings
+/.agents/
+/.claude/
+/.windsurf/
 
 # Temporary files
 *.tmp

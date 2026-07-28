@@ -92,7 +92,6 @@ export async function GET() {
         id: true,
         projectId: true,
         activityDate: true,
-      dueDate: true,
         dueDate: true,
         startTime: true,
         endTime: true,
@@ -265,3 +264,5 @@ function calculateHours(startValue: unknown, endValue: unknown) {
     hours: durationMinutes / 60,
   };
 }
+
+

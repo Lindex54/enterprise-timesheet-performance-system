@@ -1,4 +1,4 @@
-﻿generator client {
+generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
@@ -304,5 +304,3 @@ model PerformanceMetric {
   @@index([performancePeriodId])
   @@map("performance_metrics")
 }
-
-

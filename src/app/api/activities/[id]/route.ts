@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { getCurrentEmployee } from "../../../../../lib/current-employee";
 import prisma from "../../../../../lib/prisma";
@@ -178,6 +178,7 @@ function validateBody(body: Record<string, unknown>) {
   return {
     ok: true as const,
     date,
+    dueDate,
     title,
     description,
     projectId,
