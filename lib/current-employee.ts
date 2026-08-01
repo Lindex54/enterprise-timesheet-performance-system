@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { Prisma } from "../src/generated/prisma/client";
 import prisma from "./prisma";
 
 export const DEVELOPMENT_EMPLOYEE_NUMBER = "BU-ICT-026";
@@ -23,7 +24,7 @@ export async function getCurrentEmployee() {
     return existingEmployee;
   }
 
-  return prisma.$transaction(async (transaction) => {
+  return prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
     const department = await transaction.department.upsert({
       where: { name: "University Library" },
       update: {},

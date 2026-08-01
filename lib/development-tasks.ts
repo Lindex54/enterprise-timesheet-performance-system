@@ -22,7 +22,12 @@ export async function ensureDevelopmentTasks() {
   const projects = await prisma.project.findMany({
     select: { id: true, name: true },
   });
-  const projectIds = new Map(projects.map((project) => [project.name, project.id]));
+  const projectIds = new Map(
+    projects.map((project: { id: number; name: string }) => [
+      project.name,
+      project.id,
+    ]),
+  );
 
   await prisma.$transaction(
     DEVELOPMENT_TASKS.map(

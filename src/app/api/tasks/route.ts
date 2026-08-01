@@ -117,7 +117,9 @@ function dateKeyInNairobi(date: Date) {
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(date);
-  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const value = Object.fromEntries(
+    parts.map((part: Intl.DateTimeFormatPart) => [part.type, part.value]),
+  );
   return `${value.year}-${value.month}-${value.day}`;
 }
 
@@ -129,6 +131,6 @@ function titleCase(value: string) {
   return value
     .toLowerCase()
     .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }

@@ -246,7 +246,11 @@ function formatTime(value: Date | null) {
 }
 
 function displayWorkStatus(value: ActivityWorkStatus) {
-  return value.toLowerCase().split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 function calculateHours(startValue: unknown, endValue: unknown) {
   if (typeof startValue !== "string" || typeof endValue !== "string" || !/^\d{2}:\d{2}$/.test(startValue) || !/^\d{2}:\d{2}$/.test(endValue)) return null;

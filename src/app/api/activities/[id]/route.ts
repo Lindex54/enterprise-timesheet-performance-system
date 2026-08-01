@@ -8,6 +8,10 @@ import {
   TaskPriority,
 } from "../../../../generated/prisma/enums";
 
+type ActivityRouteContext = {
+  params: Promise<{ id: string }>;
+};
+
 const priorities = {
   Low: TaskPriority.LOW,
   Medium: TaskPriority.MEDIUM,
@@ -24,7 +28,7 @@ const workStatuses = {
 
 export async function PATCH(
   request: Request,
-  context: RouteContext<"/api/activities/[id]">,
+  context: ActivityRouteContext,
 ) {
   const { id: rawId } = await context.params;
   const id = Number(rawId);
@@ -97,7 +101,7 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  context: RouteContext<"/api/activities/[id]">,
+  context: ActivityRouteContext,
 ) {
   const { id: rawId } = await context.params;
   const id = Number(rawId);
@@ -265,7 +269,7 @@ function displayWorkStatus(value: ActivityWorkStatus) {
   return value
     .toLowerCase()
     .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
 
