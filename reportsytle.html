@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Monthly Report — July 2026</title>
+    <style>
+      :root {
+        --paper: #e8e3d3;
+        --paper-2: #f1ede0;
+        --card: #fbf9f3;
+        --ink: #23281f;
+        --ink-soft: #6b6a56;
+        --ink-faint: #9c9a82;
+        --rule: #b9af95;
+        --rule-soft: #dad3bd;
+        --green: #3c6e52;
+        --green-soft: #dde7dd;
+        --amber: #ad7620;
+        --amber-soft: #f1e2c4;
+        --red: #9b3e2e;
+        --red-soft: #f1dcd5;
+        --display:
+          Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman",
+          serif;
+        --mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+        --sans:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            transparent,
+            transparent 27px,
+            rgba(90, 86, 60, 0.05) 28px
+          ),
+          var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        padding: 40px 20px 80px;
+      }
+
+      .sheet {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      /* ---------- Header ledger card ---------- */
+      .header {
+        background: var(--card);
+        border: 1px solid var(--rule-soft);
+        border-radius: 4px;
+        position: relative;
+        padding: 34px 40px 30px;
+        overflow: hidden;
+      }
+      .punch-row {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 16px;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+      }
+      .punch-row span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--paper);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--green);
+        margin: 12px 0 6px;
+      }
+      .title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      h1 {
+        font-family: var(--display);
+        font-size: 34px;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .period-tag {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--paper-2);
+        border: 1px solid var(--rule-soft);
+        padding: 6px 12px;
+        border-radius: 3px;
+        color: var(--ink-soft);
+      }
+      .subtitle {
+        color: var(--ink-soft);
+        font-size: 14.5px;
+        margin: 10px 0 0;
+        max-width: 520px;
+        line-height: 1.5;
+      }
+      .record-count {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--ink-faint);
+        margin-top: 18px;
+      }
+
+      /* ---------- Hero metrics stub strip ---------- */
+      .stubs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--rule-soft);
+        border: 1px solid var(--rule-soft);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 22px;
+      }
+      .stub {
+        background: var(--card);
+        padding: 20px 18px;
+        position: relative;
+      }
+      .stub-label {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink-faint);
+        margin-bottom: 10px;
+      }
+      .stub-value {
+        font-family: var(--display);
+        font-size: 30px;
+        font-weight: 700;
+      }
+      .stub-value small {
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--ink-soft);
+        margin-left: 2px;
+      }
+      .stamp {
+        position: absolute;
+        top: 14px;
+        right: 12px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 2px dashed var(--green);
+        color: var(--green);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 13px;
+        transform: rotate(-9deg);
+        opacity: 0.9;
+      }
+
+      /* ---------- Section shell ---------- */
+      .section {
+        background: var(--card);
+        border: 1px solid var(--rule-soft);
+        border-radius: 4px;
+        margin-top: 22px;
+        padding: 28px 40px 32px;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 22px;
+        border-bottom: 1px solid var(--rule-soft);
+        padding-bottom: 14px;
+      }
+      .section-head h2 {
+        font-family: var(--display);
+        font-size: 20px;
+        margin: 0;
+      }
+      .section-head p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--ink-soft);
+      }
+
+      /* ---------- Activity log (ledger timeline) ---------- */
+      .log {
+        position: relative;
+        padding-left: 88px;
+      }
+      .log::before {
+        content: "";
+        position: absolute;
+        left: 70px;
+        top: 6px;
+        bottom: 6px;
+        width: 1px;
+        background: var(--rule-soft);
+      }
+      .entry {
+        position: relative;
+        padding-bottom: 26px;
+      }
+      .entry:last-child {
+        padding-bottom: 0;
+      }
+      .entry-date {
+        position: absolute;
+        left: -88px;
+        top: 2px;
+        width: 70px;
+        text-align: right;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-soft);
+        line-height: 1.3;
+      }
+      .entry-dot {
+        position: absolute;
+        left: -33px;
+        top: 5px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--card);
+        border: 2px solid var(--green);
+      }
+      .entry.in-progress .entry-dot {
+        border-color: var(--amber);
+      }
+      .entry-body {
+        background: var(--paper-2);
+        border: 1px solid var(--rule-soft);
+        border-radius: 3px;
+        padding: 14px 18px;
+      }
+      .entry-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .entry-title {
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 4px;
+      }
+      .entry-desc {
+        font-size: 13px;
+        color: var(--ink-soft);
+        line-height: 1.5;
+        margin: 0 0 10px;
+        max-width: 520px;
+      }
+      .entry-meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .hours-pill {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        background: var(--card);
+        border: 1px solid var(--rule-soft);
+        padding: 4px 9px;
+        border-radius: 3px;
+        white-space: nowrap;
+      }
+      .status-chip {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 4px 9px;
+        border-radius: 12px;
+        white-space: nowrap;
+      }
+      .status-chip.completed {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .status-chip.in-progress {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+      .entry-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px dashed var(--rule-soft);
+        margin-top: 10px;
+        padding-top: 10px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .project-tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-faint);
+      }
+      .project-tag::before {
+        content: "◆ ";
+        color: var(--rule);
+      }
+      .output-text {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        font-style: italic;
+      }
+
+      /* ---------- Work areas ---------- */
+      .area-row {
+        display: grid;
+        grid-template-columns: 170px 1fr 70px;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--rule-soft);
+      }
+      .area-row:last-child {
+        border-bottom: none;
+      }
+      .area-name {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 14.5px;
+      }
+      .area-sub {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--ink-faint);
+        margin-top: 2px;
+      }
+      .area-track {
+        height: 8px;
+        background: var(--paper-2);
+        border: 1px solid var(--rule-soft);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .area-fill {
+        height: 100%;
+        background: var(--green);
+        border-radius: 4px 0 0 4px;
+      }
+      .area-hours {
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 13px;
+        text-align: right;
+      }
+
+      /* ---------- Challenges ---------- */
+      .flags {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .flag {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        background: var(--red-soft);
+        border-left: 3px solid var(--red);
+        padding: 10px 14px;
+        border-radius: 0 3px 3px 0;
+        font-size: 13.5px;
+        color: var(--ink);
+      }
+      .flag-num {
+        font-family: var(--mono);
+        font-weight: 700;
+        color: var(--red);
+        font-size: 12px;
+        padding-top: 1px;
+      }
+
+      footer.note {
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-faint);
+        margin-top: 26px;
+      }
+
+      @media (max-width: 600px) {
+        .header,
+        .section {
+          padding: 24px 20px 26px;
+        }
+        .stubs {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .log {
+          padding-left: 64px;
+        }
+        .log::before {
+          left: 48px;
+        }
+        .entry-date {
+          left: -64px;
+          width: 48px;
+          font-size: 10px;
+        }
+        .entry-dot {
+          left: -25px;
+        }
+        .area-row {
+          grid-template-columns: 1fr;
+          text-align: left;
+          gap: 6px;
+        }
+        .area-hours {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <div class="header">
+        <div class="punch-row">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="eyebrow">Reporting &amp; Documentation</div>
+        <div class="title-row">
+          <h1>Monthly Report</h1>
+          <div class="period-tag">JUL 2026</div>
+        </div>
+        <p class="subtitle">
+          A consolidated summary of recorded work — activities, hours, delivery
+          progress, and work areas for the selected month.
+        </p>
+        <div class="record-count">9 ACTIVITY RECORDS LOGGED</div>
+      </div>
+
+      <div class="stubs">
+        <div class="stub">
+          <div class="stub-label">Total activities</div>
+          <div class="stub-value">9</div>
+        </div>
+        <div class="stub">
+          <div class="stub-label">Completed</div>
+          <div class="stub-value">8</div>
+        </div>
+        <div class="stub">
+          <div class="stub-label">Hours recorded</div>
+          <div class="stub-value">71<small>hrs</small></div>
+        </div>
+        <div class="stub">
+          <div class="stub-label">Completion rate</div>
+          <div class="stub-value">89<small>%</small></div>
+          <div class="stamp">89%</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div>
+            <h2>Activity details</h2>
+            <p>What was recorded during July, most recent first.</p>
+          </div>
+        </div>
+        <div class="log">
+          <div class="entry">
+            <div class="entry-date">30 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">
+                    Completed monthly activity reconciliation
+                  </p>
+                  <p class="entry-desc">
+                    Checked recorded hours, outputs and evidence links before
+                    submitting the July timesheet.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Timesheet System</span>
+                <span class="output-text"
+                  >July activity record reconciled and ready for approval.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry">
+            <div class="entry-date">28 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">Updated staff learning resources</p>
+                  <p class="entry-desc">
+                    Published revised digital skills resources and corrected
+                    resource links.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Content Development</span>
+                <span class="output-text"
+                  >Learning resources published and links verified.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry in-progress">
+            <div class="entry-date">24 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">
+                    Compiled July ICT service delivery summary
+                  </p>
+                  <p class="entry-desc">
+                    Consolidated completed web, support and systems improvements
+                    for monthly reporting.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip in-progress">In Progress</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Research and Publication</span>
+                <span class="output-text"
+                  >Draft monthly ICT summary ready for supervisor review.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry">
+            <div class="entry-date">21 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">
+                    Improved faculty website content structure
+                  </p>
+                  <p class="entry-desc">
+                    Applied approved heading hierarchy and refreshed faculty
+                    landing-page content.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Faculty Website</span>
+                <span class="output-text"
+                  >Faculty pages aligned to the approved content
+                  structure.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry">
+            <div class="entry-date">17 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">
+                    Published revised research repository guidance
+                  </p>
+                  <p class="entry-desc">
+                    Updated repository submission guidance and linked the
+                    current copyright checklist.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">7h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Research and Publication</span>
+                <span class="output-text"
+                  >Updated guidance published for researchers.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry">
+            <div class="entry-date">14 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">
+                    Tested activity submission and validation flow
+                  </p>
+                  <p class="entry-desc">
+                    Verified date, duration and required-field validation across
+                    the employee activity form.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Timesheet System</span>
+                <span class="output-text"
+                  >Validation issues resolved and regression notes
+                  completed.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry">
+            <div class="entry-date">10 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">Prepared timesheet user guide</p>
+                  <p class="entry-desc">
+                    Created step-by-step guidance for recording activities, work
+                    location and evidence.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Timesheet System</span>
+                <span class="output-text"
+                  >Employee user guide shared for internal review.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry">
+            <div class="entry-date">07 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">Reviewed faculty programme pages</p>
+                  <p class="entry-desc">
+                    Reviewed course information, page structure and broken
+                    content references with faculty editors.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">Faculty Website</span>
+                <span class="output-text"
+                  >Content issues documented and correction requests
+                  issued.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="entry">
+            <div class="entry-date">03 Jul</div>
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-top">
+                <div>
+                  <p class="entry-title">
+                    Updated university website accessibility navigation
+                  </p>
+                  <p class="entry-desc">
+                    Improved keyboard navigation, focus states and page
+                    landmarks for public-facing content.
+                  </p>
+                </div>
+                <div class="entry-meta">
+                  <span class="hours-pill">8h</span>
+                  <span class="status-chip completed">Completed</span>
+                </div>
+              </div>
+              <div class="entry-footer">
+                <span class="project-tag">University Website</span>
+                <span class="output-text"
+                  >Accessible navigation deployed and verified on priority
+                  templates.</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div>
+            <h2>Work areas</h2>
+            <p>Recorded time by project.</p>
+          </div>
+        </div>
+
+        <div class="area-row">
+          <div>
+            <div class="area-name">Timesheet System</div>
+            <div class="area-sub">3 ACTIVITIES · 3 COMPLETED</div>
+          </div>
+          <div class="area-track">
+            <div class="area-fill" style="width: 100%"></div>
+          </div>
+          <div class="area-hours">24 hrs</div>
+        </div>
+
+        <div class="area-row">
+          <div>
+            <div class="area-name">Faculty Website</div>
+            <div class="area-sub">2 ACTIVITIES · 2 COMPLETED</div>
+          </div>
+          <div class="area-track">
+            <div class="area-fill" style="width: 67%"></div>
+          </div>
+          <div class="area-hours">16 hrs</div>
+        </div>
+
+        <div class="area-row">
+          <div>
+            <div class="area-name">Research and Publication</div>
+            <div class="area-sub">2 ACTIVITIES · 1 COMPLETED</div>
+          </div>
+          <div class="area-track">
+            <div
+              class="area-fill"
+              style="width: 63%; background: var(--amber)"
+            ></div>
+          </div>
+          <div class="area-hours">15 hrs</div>
+        </div>
+
+        <div class="area-row">
+          <div>
+            <div class="area-name">Content Development</div>
+            <div class="area-sub">1 ACTIVITY · 1 COMPLETED</div>
+          </div>
+          <div class="area-track">
+            <div class="area-fill" style="width: 33%"></div>
+          </div>
+          <div class="area-hours">8 hrs</div>
+        </div>
+
+        <div class="area-row">
+          <div>
+            <div class="area-name">University Website</div>
+            <div class="area-sub">1 ACTIVITY · 1 COMPLETED</div>
+          </div>
+          <div class="area-track">
+            <div class="area-fill" style="width: 33%"></div>
+          </div>
+          <div class="area-hours">8 hrs</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div>
+            <h2>Recorded challenges</h2>
+            <p>Challenges entered with your activities.</p>
+          </div>
+        </div>
+        <div class="flags">
+          <div class="flag">
+            <span class="flag-num">01</span
+            ><span>Awaiting final service desk statistics.</span>
+          </div>
+          <div class="flag">
+            <span class="flag-num">02</span
+            ><span
+              >Browser cache caused an outdated form to appear during
+              testing.</span
+            >
+          </div>
+          <div class="flag">
+            <span class="flag-num">03</span
+            ><span>Two departments had outdated programme descriptions.</span>
+          </div>
+        </div>
+      </div>
+
+      <footer class="note">GENERATED FROM RECORDED ACTIVITY · JULY 2026</footer>
+    </div>
+  </body>
+</html>

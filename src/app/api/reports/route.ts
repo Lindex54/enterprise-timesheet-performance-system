@@ -13,6 +13,7 @@ type Activity = {
   workStatus: ActivityWorkStatus;
   submissionStatus: SubmissionStatus;
   expectedOutput: string | null;
+  actualOutput: string | null;
   challenges: string | null;
   project: { name: string };
 };
@@ -66,6 +67,7 @@ const activitySelect = {
   workStatus: true,
   submissionStatus: true,
   expectedOutput: true,
+  actualOutput: true,
   challenges: true,
   project: { select: { name: true } },
 } as const;
@@ -147,7 +149,7 @@ function presentActivity(activity: Activity) {
     hours: activity.hours.toNumber(),
     status: titleCase(activity.workStatus),
     submissionStatus: titleCase(activity.submissionStatus),
-    expectedOutput: activity.expectedOutput ?? "",
+    expectedOutput: activity.actualOutput || activity.expectedOutput || "",
     challenges: activity.challenges ?? "",
   };
 }

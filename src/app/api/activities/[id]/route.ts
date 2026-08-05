@@ -104,6 +104,7 @@ export async function PATCH(
       priority: values.priority,
       workStatus: values.workStatus,
       expectedOutput: optionalText(body.expectedOutput),
+      actualOutput: optionalText(body.actualOutput),
       challenges: optionalText(body.challenges),
       remarks: optionalText(body.remarks),
       workLocation: optionalText(body.workLocation),
@@ -167,6 +168,7 @@ const activitySelect = {
   workStatus: true,
   submissionStatus: true,
   expectedOutput: true,
+  actualOutput: true,
   challenges: true,
   remarks: true,
   project: { select: { name: true } },
@@ -232,6 +234,7 @@ function presentActivity(activity: {
   workStatus: ActivityWorkStatus;
   submissionStatus: SubmissionStatus;
   expectedOutput: string | null;
+  actualOutput: string | null;
   challenges: string | null;
   remarks: string | null;
   project: { name: string };
@@ -256,6 +259,7 @@ function presentActivity(activity: {
     workStatus: displayWorkStatus(activity.workStatus),
     status: "Draft",
     expectedOutput: activity.expectedOutput ?? "",
+    actualOutput: activity.actualOutput ?? "",
     challenges: activity.challenges ?? "",
     remarks: activity.remarks ?? "",
   };

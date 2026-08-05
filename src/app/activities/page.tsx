@@ -35,6 +35,7 @@ type Activity = {
   status: ActivityStatus;
   workStatus: string;
   expectedOutput: string;
+  actualOutput: string;
   challenges: string;
   remarks: string;
 };
@@ -76,6 +77,7 @@ const emptyForm = {
   priority: "Medium",
   status: "In Progress",
   expectedOutput: "",
+  actualOutput: "",
   challenges: "",
   remarks: "",
 };
@@ -299,6 +301,7 @@ export default function ActivitiesPage() {
       priority: activity.priority,
       status: activity.workStatus,
       expectedOutput: activity.expectedOutput,
+      actualOutput: activity.actualOutput,
       challenges: activity.challenges,
       remarks: activity.remarks,
     });
@@ -600,6 +603,17 @@ export default function ActivitiesPage() {
                 />
               </FormField>
 
+              <FormField label="Actual output / deliverable">
+                <textarea
+                  name="actualOutput"
+                  value={formData.actualOutput}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="What was actually delivered or achieved?"
+                  className="form-input resize-y"
+                />
+              </FormField>
+
               <FormField label="Challenges encountered">
                 <textarea
                   name="challenges"
@@ -860,6 +874,7 @@ export default function ActivitiesPage() {
               </div>
               <div className="sm:col-span-2"><Detail label="Description" value={selectedActivity.description} /></div>
               <div className="sm:col-span-2"><Detail label="Expected output" value={selectedActivity.expectedOutput || "Not provided"} /></div>
+              <div className="sm:col-span-2"><Detail label="Actual output / deliverable" value={selectedActivity.actualOutput || "Not provided"} /></div>
               <div className="sm:col-span-2"><Detail label="Challenges" value={selectedActivity.challenges || "None recorded"} /></div>
               <div className="sm:col-span-2"><Detail label="Remarks" value={selectedActivity.remarks || "None recorded"} /></div>
             </div>

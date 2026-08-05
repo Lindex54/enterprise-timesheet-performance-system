@@ -40,6 +40,7 @@ function presentActivity(activity: {
   workStatus: ActivityWorkStatus;
   submissionStatus: SubmissionStatus;
   expectedOutput: string | null;
+  actualOutput: string | null;
   challenges: string | null;
   remarks: string | null;
   project: { name: string };
@@ -75,6 +76,7 @@ function presentActivity(activity: {
     status: displayStatus,
     workStatus: displayWorkStatus(activity.workStatus),
     expectedOutput: activity.expectedOutput ?? "",
+    actualOutput: activity.actualOutput ?? "",
     challenges: activity.challenges ?? "",
     remarks: activity.remarks ?? "",
   };
@@ -110,6 +112,7 @@ export async function GET() {
         workStatus: true,
         submissionStatus: true,
         expectedOutput: true,
+        actualOutput: true,
         challenges: true,
         remarks: true,
         project: { select: { name: true } },
@@ -221,6 +224,7 @@ export async function POST(request: Request) {
       workStatus,
       submissionStatus,
       expectedOutput: optionalText(body.expectedOutput),
+      actualOutput: optionalText(body.actualOutput),
       challenges: optionalText(body.challenges),
       remarks: optionalText(body.remarks),
       workLocation: optionalText(body.workLocation),
@@ -247,6 +251,7 @@ export async function POST(request: Request) {
       workStatus: true,
       submissionStatus: true,
       expectedOutput: true,
+      actualOutput: true,
       challenges: true,
       remarks: true,
       project: { select: { name: true } },

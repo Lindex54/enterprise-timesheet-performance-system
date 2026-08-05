@@ -45,7 +45,7 @@ const initialProfile: ProfileForm = {
   email: "godwin.malinde@busitema.ac.ug",
   phone: "+256 700 000 000",
   gender: "Male",
-  dateOfBirth: "1998-06-12",
+  dateOfBirth: "1984-06-12",
   address: "Busitema, Uganda",
   jobTitle: "ICT Fellow",
   department: "University Library",

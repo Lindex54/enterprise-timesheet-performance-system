@@ -46,6 +46,11 @@ textarea {
 }
 
 @media print {
+  @page {
+    size: 210mm 297mm;
+    margin: 10mm;
+  }
+
   body {
     background: white;
   }
@@ -64,7 +69,13 @@ textarea {
     padding: 0 !important;
   }
 
+  .report-screen-header,
+  .report-screen-message {
+    display: none !important;
+  }
+
   #printable-report {
+    display: none !important;
     margin: 0 !important;
     border: none !important;
     box-shadow: none !important;
@@ -74,7 +85,91 @@ textarea {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+
+  #printable-timesheet {
+    width: 100%;
+  }
+
+  #printable-timesheet * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .report-print-sheet {
+    --report-paper: #e8e3d3;
+    --report-paper-2: #f1ede0;
+    --report-card: #fbf9f3;
+    --report-ink: #23281f;
+    --report-soft: #6b6a56;
+    --report-faint: #9c9a82;
+    --report-rule: #b9af95;
+    --report-rule-soft: #dad3bd;
+    --report-green: #3c6e52;
+    --report-green-soft: #dde7dd;
+    --report-amber: #ad7620;
+    --report-amber-soft: #f1e2c4;
+    --report-red: #9b3e2e;
+    --report-red-soft: #f1dcd5;
+    display: block !important;
+    color: var(--report-ink);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .report-print-sheet * { box-sizing: border-box; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .report-print-sheet .report-paper-header { display: block !important; position: relative; overflow: hidden; border: 1px solid var(--report-rule-soft); border-radius: 4px; background: var(--report-card); padding: 25px 30px 22px; }
+  .report-punches { position: absolute; inset: 0 0 auto; display: flex; height: 12px; align-items: center; justify-content: space-evenly; }
+  .report-punches span { height: 6px; width: 6px; border-radius: 50%; background: var(--report-paper); box-shadow: inset 0 1px 1px #777; }
+  .report-eyebrow, .report-record-count, .report-period-tag, .report-metric p, .report-entry-meta, .report-area-row small, .report-paper-footer { font-family: "Courier New", monospace; }
+  .report-eyebrow { margin: 8px 0 6px; color: var(--report-green); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .report-title-row { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+  .report-title-row h1, .report-section-head h2, .report-entry-body h3, .report-area-row strong, .report-metric strong { font-family: Georgia, "Times New Roman", serif; }
+  .report-title-row h1 { margin: 0; font-size: 32px; }
+  .report-period-tag { border: 1px solid var(--report-rule-soft); border-radius: 3px; background: var(--report-paper-2); color: var(--report-soft); padding: 6px 10px; font-size: 11px; }
+  .report-subtitle { max-width: 520px; margin: 9px 0 0; color: var(--report-soft); font-size: 12.5px; line-height: 1.5; }
+  .report-record-count { margin: 14px 0 0; color: var(--report-faint); font-size: 10px; }
+  .report-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; overflow: hidden; margin-top: 16px; border: 1px solid var(--report-rule-soft); border-radius: 4px; background: var(--report-rule-soft); }
+  .report-metric { position: relative; min-height: 98px; padding: 16px; background: var(--report-card); }
+  .report-metric p { margin: 0 0 9px; color: var(--report-faint); font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .report-metric strong { font-size: 27px; }
+  .report-metric small { margin-left: 2px; color: var(--report-soft); font-family: Arial, sans-serif; font-size: 11px; font-weight: normal; }
+  .report-metric i { position: absolute; top: 10px; right: 9px; display: grid; height: 40px; width: 40px; place-items: center; border: 1.5px dashed var(--report-green); border-radius: 50%; color: var(--report-green); font-family: "Courier New", monospace; font-size: 9px; font-style: normal; font-weight: bold; transform: rotate(-9deg); }
+  .report-paper-section { margin-top: 16px; border: 1px solid var(--report-rule-soft); border-radius: 4px; background: var(--report-card); padding: 20px 30px 22px; }
+  .report-section-head { margin-bottom: 16px; border-bottom: 1px solid var(--report-rule-soft); padding-bottom: 10px; }
+  .report-section-head h2 { margin: 0; font-size: 20px; }
+  .report-section-head p { margin: 4px 0 0; color: var(--report-soft); font-size: 11px; }
+  .report-log { position: relative; padding-left: 66px; }
+  .report-log::before { position: absolute; top: 4px; bottom: 4px; left: 52px; width: 1px; background: var(--report-rule-soft); content: ""; }
+  .report-entry { position: relative; break-inside: avoid; padding-bottom: 15px; }
+  .report-entry:last-child { padding-bottom: 0; }
+  .report-entry-date { position: absolute; top: 2px; left: -66px; width: 51px; color: var(--report-soft); font-family: "Courier New", monospace; font-size: 10px; text-align: right; }
+  .report-entry-dot { position: absolute; top: 3px; left: -19px; height: 8px; width: 8px; border: 1.5px solid var(--report-green); border-radius: 50%; background: var(--report-card); }
+  .report-entry-progress .report-entry-dot { border-color: var(--report-amber); }
+  .report-entry-body { border: 1px solid var(--report-rule-soft); border-radius: 3px; background: var(--report-paper-2); padding: 10px 12px; }
+  .report-entry-top, .report-entry-footer { display: flex; justify-content: space-between; gap: 8px; }
+  .report-entry-body h3 { margin: 0 0 4px; font-size: 14px; }
+  .report-entry-body p { max-width: 410px; margin: 0; color: var(--report-soft); font-size: 10.5px; line-height: 1.45; }
+  .report-entry-meta { display: flex; align-items: start; gap: 5px; font-size: 9px; white-space: nowrap; }
+  .report-entry-meta b { border: 1px solid var(--report-rule-soft); border-radius: 3px; background: var(--report-card); padding: 3px 5px; }
+  .report-entry-meta span { border-radius: 10px; background: var(--report-green-soft); color: var(--report-green); padding: 3px 5px; text-transform: uppercase; }
+  .report-entry-progress .report-entry-meta span { background: var(--report-amber-soft); color: var(--report-amber); }
+  .report-entry-footer { margin-top: 8px; border-top: 1px dashed var(--report-rule-soft); padding-top: 8px; font-size: 9.5px; }
+  .report-entry-footer em { color: var(--report-faint); font-family: "Courier New", monospace; font-style: normal; }
+  .report-entry-footer i { color: var(--report-soft); font-style: italic; text-align: right; }
+  .report-area-row { display: grid; grid-template-columns: 145px 1fr 50px; gap: 12px; align-items: center; border-bottom: 1px solid var(--report-rule-soft); padding: 9px 0; }
+  .report-area-row:last-of-type { border-bottom: 0; }
+  .report-area-row strong { display: block; font-size: 12px; }
+  .report-area-row small { display: block; margin-top: 2px; color: var(--report-faint); font-size: 8px; }
+  .report-area-track { height: 6px; overflow: hidden; border: 1px solid var(--report-rule-soft); border-radius: 4px; background: var(--report-paper-2); }
+  .report-area-track i { display: block; height: 100%; background: var(--report-green); }
+  .report-area-row > b { font-family: "Courier New", monospace; font-size: 10px; text-align: right; }
+  .report-flags { display: grid; gap: 7px; }
+  .report-flag { display: flex; gap: 9px; margin: 0; border-left: 3px solid var(--report-red); border-radius: 0 3px 3px 0; background: var(--report-red-soft); padding: 9px 11px; font-size: 10.5px; }
+  .report-flag b { color: var(--report-red); font-family: "Courier New", monospace; }
+  .report-empty { margin: 0; color: var(--report-soft); font-size: 10px; }
+  .report-paper-footer { margin-top: 18px; color: var(--report-faint); font-size: 8px; text-align: center; }
 }
+
+.report-print-sheet { display: none; }
 
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]) {

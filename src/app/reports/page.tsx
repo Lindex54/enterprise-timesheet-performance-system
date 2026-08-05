@@ -15,7 +15,6 @@ const monthNames = ["January", "February", "March", "April", "May", "June", "Jul
 
 type ReportData = {
   summary: { totalActivities: number; completedActivities: number; submittedActivities: number; totalHours: number; completionRate: number };
-  months: { month: number; label: string; activities: number; hours: number }[];
   activities: { id: number; date: string; title: string; description: string; project: string; hours: number; status: string; submissionStatus: string; expectedOutput: string; challenges: string }[];
   workAreas: { name: string; activities: number; completed: number; hours: number; completionRate: number }[];
   achievements: string[];
@@ -54,13 +53,16 @@ export default function ReportsPage() {
 
   return (
     <DashboardShell>
-      <section className="mb-7 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+      <section className="report-screen-header mb-7 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
           <p className="text-sm font-semibold text-blue-600">Reporting and Documentation</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900 lg:text-3xl">Monthly work records</h1>
-          <p className="mt-1 text-slate-500">Choose a month to review your recorded work and create a report.</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900 lg:text-3xl">Monthly Report</h1>
+          <p className="mt-1 text-slate-500">A consolidated summary of your recorded work for the selected month.</p>
         </div>
         <div className="flex gap-3">
+          <select value={selectedMonth} onChange={(event) => setSelectedMonth(Number(event.target.value))} className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+            {monthNames.map((label, index) => <option key={label} value={index + 1}>{label}</option>)}
+          </select>
           <select value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))} className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
             <option value={2026}>2026</option><option value={2025}>2025</option><option value={2024}>2024</option>
           </select>
@@ -68,19 +70,14 @@ export default function ReportsPage() {
         </div>
       </section>
 
-      {error && <p className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {error && <p className="report-screen-message mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
-      <div className="grid gap-6 xl:grid-cols-[330px_1fr]">
-        <aside className="rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-5 py-5"><h2 className="font-bold text-slate-900">{selectedYear} records</h2><p className="mt-1 text-sm text-slate-500">Select a month to view its work.</p></div>
-          <div className="divide-y divide-slate-100">{(data?.months ?? monthNames.map((label, index) => ({ month: index + 1, label, activities: 0, hours: 0 }))).map((month) => <button type="button" key={month.month} onClick={() => setSelectedMonth(month.month)} className={`flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition ${month.month === selectedMonth ? "bg-blue-50" : "hover:bg-slate-50"}`}><div><p className={`font-semibold ${month.month === selectedMonth ? "text-blue-700" : "text-slate-800"}`}>{month.label}</p><p className="mt-0.5 text-xs text-slate-500">{month.activities} {month.activities === 1 ? "activity" : "activities"}</p></div><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${month.month === selectedMonth ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"}`}>{month.hours} hrs</span></button>)}</div>
-        </aside>
-
-        <div id="printable-report" className="min-w-0">
+      <div id="printable-report" className="min-w-0">
           <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start"><div><div className="flex items-center gap-2 text-blue-600"><CalendarDays size={19} /><span className="text-sm font-semibold">Monthly record</span></div><h2 className="mt-2 text-2xl font-bold text-slate-900">{selectedLabel} {selectedYear}</h2><p className="mt-1 text-sm text-slate-500">All activities recorded for this month.</p></div><span className="w-fit rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-600">{summary.totalActivities} records</span></div>
+            <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-6 sm:flex-row sm:items-start"><div><div className="flex items-center gap-2 text-blue-600"><CalendarDays size={19} /><span className="text-sm font-semibold">Report period</span></div><h2 className="mt-2 text-2xl font-bold text-slate-900">{selectedLabel} {selectedYear}</h2><p className="mt-1 text-sm text-slate-500">Summary of activities, recorded hours, delivery progress, and work areas.</p></div><span className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700">{summary.totalActivities} activity records</span></div>
 
-            <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><SummaryCard title="Activities" value={summary.totalActivities} icon={ListChecks} /><SummaryCard title="Completed" value={summary.completedActivities} icon={CheckCircle2} /><SummaryCard title="Hours recorded" value={summary.totalHours} icon={Clock3} /><SummaryCard title="Completion" value={`${summary.completionRate}%`} icon={FileText} /></div>
+            <div className="mt-6"><h3 className="text-base font-bold text-slate-900">Report summary</h3><p className="mt-1 text-sm text-slate-500">Key figures for {selectedLabel} {selectedYear}.</p></div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><SummaryCard title="Total activities" value={summary.totalActivities} icon={ListChecks} /><SummaryCard title="Completed activities" value={summary.completedActivities} icon={CheckCircle2} /><SummaryCard title="Hours recorded" value={`${summary.totalHours} hrs`} icon={Clock3} /><SummaryCard title="Completion rate" value={`${summary.completionRate}%`} icon={FileText} /></div>
           </section>
 
           <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -92,8 +89,8 @@ export default function ReportsPage() {
             <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"><div className="border-b border-slate-200 px-6 py-5"><h2 className="text-lg font-bold text-slate-900">Work areas</h2><p className="mt-1 text-sm text-slate-500">Recorded time by project.</p></div><div className="divide-y divide-slate-100">{(data?.workAreas ?? []).map((area) => <div key={area.name} className="px-6 py-4"><div className="flex justify-between gap-4"><p className="font-semibold text-slate-900">{area.name}</p><p className="whitespace-nowrap text-sm text-slate-600">{area.hours} hrs</p></div><p className="mt-1 text-sm text-slate-500">{area.activities} activities · {area.completed} completed</p><div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${area.completionRate}%` }} /></div></div>)}{!isLoading && !data?.workAreas.length && <p className="px-6 py-8 text-sm text-slate-500">No work areas recorded for this month.</p>}</div></article>
             <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-lg font-bold text-slate-900">Recorded challenges</h2><p className="mt-1 text-sm text-slate-500">Challenges entered with your activities.</p><div className="mt-5 space-y-4">{(data?.challenges ?? []).map((challenge, index) => <div key={`${challenge}-${index}`} className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">{index + 1}</span><p className="text-sm leading-6 text-slate-600">{challenge}</p></div>)}{!isLoading && !data?.challenges.length && <p className="text-sm text-slate-500">No challenges were recorded for this month.</p>}</div></article>
           </section>
-        </div>
       </div>
+      <PrintedMonthlyReport data={data} month={selectedMonth} year={selectedYear} />
     </DashboardShell>
   );
 }
@@ -103,3 +100,22 @@ const emptySummary = { totalActivities: 0, completedActivities: 0, submittedActi
 function SummaryCard({ title, value, icon: Icon }: { title: string; value: string | number; icon: React.ElementType }) { return <div className="rounded-lg bg-slate-50 p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium text-slate-500">{title}</p><Icon size={18} className="text-blue-600" /></div><p className="mt-3 text-2xl font-bold text-slate-900">{value}</p></div>; }
 function StatusBadge({ status }: { status: string }) { const styles: Record<string, string> = { Completed: "bg-emerald-100 text-emerald-700", "In Progress": "bg-blue-100 text-blue-700", "Not Started": "bg-slate-100 text-slate-700", Blocked: "bg-amber-100 text-amber-700" }; return <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${styles[status] ?? "bg-slate-100 text-slate-700"}`}>{status}</span>; }
 function formatDate(value: string) { return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`)); }
+
+function PrintedMonthlyReport({ data, month, year }: { data: ReportData | null; month: number; year: number }) {
+  const summary = data?.summary ?? emptySummary;
+  const period = `${monthNames[month - 1]} ${year}`;
+  const shortPeriod = new Intl.DateTimeFormat("en", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1))).toUpperCase();
+
+  return <article className="report-print-sheet">
+    <header className="report-paper-header"><div className="report-punches">{Array.from({ length: 12 }, (_, index) => <span key={index} />)}</div><p className="report-eyebrow">Reporting &amp; Documentation</p><div className="report-title-row"><h1>Monthly Report</h1><span className="report-period-tag">{shortPeriod}</span></div><p className="report-subtitle">A consolidated summary of recorded work — activities, hours, delivery progress, and work areas for the selected month.</p><p className="report-record-count">{summary.totalActivities} ACTIVITY {summary.totalActivities === 1 ? "RECORD" : "RECORDS"} LOGGED</p></header>
+    <section className="report-metrics"><Metric label="Total activities" value={summary.totalActivities} /><Metric label="Completed" value={summary.completedActivities} /><Metric label="Hours recorded" value={summary.totalHours} suffix="hrs" /><Metric label="Completion rate" value={summary.completionRate} suffix="%" stamp /></section>
+    <section className="report-paper-section"><SectionHead title="Activity details" text={`What was recorded during ${monthNames[month - 1]}, most recent first.`} /><div className="report-log">{(data?.activities ?? []).map((activity) => <div key={activity.id} className={`report-entry ${activity.status === "In Progress" ? "report-entry-progress" : ""}`}><time className="report-entry-date">{formatShortDate(activity.date)}</time><i className="report-entry-dot" /><div className="report-entry-body"><div className="report-entry-top"><div><h3>{activity.title}</h3><p>{activity.description}</p></div><div className="report-entry-meta"><b>{activity.hours}h</b><span>{activity.status}</span></div></div><div className="report-entry-footer"><em>{activity.project}</em><i>{activity.expectedOutput || "No output recorded."}</i></div></div></div>)}{!data?.activities.length && <p className="report-empty">No activities were recorded for this period.</p>}</div></section>
+    <section className="report-paper-section"><SectionHead title="Work areas" text="Recorded time by project." />{(data?.workAreas ?? []).map((area) => <div className="report-area-row" key={area.name}><div><strong>{area.name}</strong><small>{area.activities} {area.activities === 1 ? "ACTIVITY" : "ACTIVITIES"} · {area.completed} COMPLETED</small></div><div className="report-area-track"><i style={{ width: `${area.completionRate}%` }} /></div><b>{area.hours} hrs</b></div>)}{!data?.workAreas.length && <p className="report-empty">No work areas were recorded for this period.</p>}</section>
+    <section className="report-paper-section"><SectionHead title="Recorded challenges" text="Challenges entered with your activities." /><div className="report-flags">{(data?.challenges ?? []).map((challenge, index) => <p className="report-flag" key={`${challenge}-${index}`}><b>{String(index + 1).padStart(2, "0")}</b><span>{challenge}</span></p>)}{!data?.challenges.length && <p className="report-empty">No challenges were recorded for this period.</p>}</div></section>
+    <footer className="report-paper-footer">GENERATED FROM RECORDED ACTIVITY · {period.toUpperCase()}</footer>
+  </article>;
+}
+
+function Metric({ label, value, suffix, stamp = false }: { label: string; value: number; suffix?: string; stamp?: boolean }) { return <div className="report-metric"><p>{label}</p><strong>{value}{suffix && <small>{suffix}</small>}</strong>{stamp && <i>{value}%</i>}</div>; }
+function SectionHead({ title, text }: { title: string; text: string }) { return <div className="report-section-head"><h2>{title}</h2><p>{text}</p></div>; }
+function formatShortDate(value: string) { return new Intl.DateTimeFormat("en", { day: "2-digit", month: "short", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`)); }

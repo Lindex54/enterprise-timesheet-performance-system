@@ -2,6 +2,7 @@
 
 import {
   BarChart3,
+  CalendarDays,
   CheckSquare,
   ClipboardList,
   FileText,
@@ -24,6 +25,11 @@ const navigation = [
     icon: ClipboardList,
   },
   {
+    name: "Weekly Activities",
+    href: "/weekly-activities",
+    icon: CalendarDays,
+  },
+  {
     name: "Task Tracker",
     href: "/task-tracker",
     icon: CheckSquare,
@@ -36,6 +42,11 @@ const navigation = [
   {
     name: "Reports",
     href: "/reports",
+    icon: FileText,
+  },
+  {
+    name: "Printable Timesheet",
+    href: "/printable-timesheet",
     icon: FileText,
   },
   {

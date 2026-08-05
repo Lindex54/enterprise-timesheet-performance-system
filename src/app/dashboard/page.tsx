@@ -8,6 +8,7 @@ import DashboardShell from "../../components/layout/DashboardShell";
 import RecentActivities from "../../components/dashboard/RecentActivities";
 import StatCard from "../../components/dashboard/StatCard";
 import TaskProgress from "../../components/dashboard/TaskProgress";
+import WeeklyActivityOverview from "../../components/dashboard/WeeklyActivityOverview";
 import { calculateOverallCompletion } from "../../../lib/completion-progress";
 
 export default function DashboardPage() {
@@ -81,6 +82,8 @@ export default function DashboardPage() {
         <RecentActivities />
         <TaskProgress />
       </section>
+
+      <WeeklyActivityOverview />
 
       <section className="mt-7 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
