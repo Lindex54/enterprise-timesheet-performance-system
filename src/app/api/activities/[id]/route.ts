@@ -34,6 +34,15 @@ export async function PATCH(
   const id = Number(rawId);
   const body = (await request.json()) as Record<string, unknown>;
   const employee = await getCurrentEmployee();
+  const evidenceFileId = parseOptionalId(body.evidenceFileId);
+
+  if (body.workLocation === "Other") {
+    return NextResponse.json(
+      { message: "Please specify the other work location." },
+      { status: 400 },
+    );
+  }
+
   const values = validateBody(body);
 
   if (!Number.isInteger(id) || !values.ok) {
@@ -71,6 +80,16 @@ export async function PATCH(
     );
   }
 
+  if (evidenceFileId) {
+    const evidenceFile = await prisma.evidenceFile.findFirst({
+      where: { id: evidenceFileId, employeeId: employee.id },
+      select: { id: true },
+    });
+    if (!evidenceFile) {
+      return NextResponse.json({ message: "The uploaded evidence file does not exist." }, { status: 400 });
+    }
+  }
+
   const activity = await prisma.activity.update({
     where: { id },
     data: {
@@ -89,6 +108,7 @@ export async function PATCH(
       remarks: optionalText(body.remarks),
       workLocation: optionalText(body.workLocation),
       evidenceLink: optionalText(body.evidenceLink),
+      evidenceFileId,
     },
     select: activitySelect,
   });
@@ -138,6 +158,8 @@ const activitySelect = {
   endTime: true,
   workLocation: true,
   evidenceLink: true,
+  evidenceFileId: true,
+  evidenceFile: { select: { fileName: true } },
   title: true,
   description: true,
   hours: true,
@@ -201,6 +223,8 @@ function presentActivity(activity: {
   endTime: Date | null;
   workLocation: string | null;
   evidenceLink: string | null;
+  evidenceFileId: number | null;
+  evidenceFile: { fileName: string } | null;
   title: string;
   description: string;
   hours: { toNumber(): number };
@@ -221,6 +245,8 @@ function presentActivity(activity: {
     endTime: formatTime(activity.endTime),
     workLocation: activity.workLocation ?? "",
     evidenceLink: activity.evidenceLink ?? "",
+    evidenceFileId: activity.evidenceFileId,
+    evidenceFileName: activity.evidenceFile?.fileName ?? "",
     project: activity.project.name,
     activity: activity.title,
     description: activity.description,
@@ -275,5 +301,10 @@ function displayWorkStatus(value: ActivityWorkStatus) {
 
 function optionalText(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function parseOptionalId(value: unknown) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
 

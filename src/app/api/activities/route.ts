@@ -31,6 +31,8 @@ function presentActivity(activity: {
   endTime: Date | null;
   workLocation: string | null;
   evidenceLink: string | null;
+  evidenceFileId: number | null;
+  evidenceFile: { fileName: string } | null;
   title: string;
   description: string;
   hours: { toNumber(): number };
@@ -62,6 +64,8 @@ function presentActivity(activity: {
     endTime: formatTime(activity.endTime),
     workLocation: activity.workLocation ?? "",
     evidenceLink: activity.evidenceLink ?? "",
+    evidenceFileId: activity.evidenceFileId,
+    evidenceFileName: activity.evidenceFile?.fileName ?? "",
     project: activity.project.name,
     activity: activity.title,
     description: activity.description,
@@ -97,6 +101,8 @@ export async function GET() {
         endTime: true,
         workLocation: true,
         evidenceLink: true,
+        evidenceFileId: true,
+        evidenceFile: { select: { fileName: true } },
         title: true,
         description: true,
         hours: true,
@@ -137,7 +143,15 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  if (body.workLocation === "Other") {
+    return NextResponse.json(
+      { message: "Please specify the other work location." },
+      { status: 400 },
+    );
+  }
   const projectId = Number(body.projectId);
+  const evidenceFileId = parseOptionalId(body.evidenceFileId);
   const timeResult = calculateHours(body.startTime, body.endTime);
 
   if (!Number.isInteger(projectId) || projectId < 1) {
@@ -182,6 +196,16 @@ export async function POST(request: Request) {
     );
   }
 
+  if (evidenceFileId) {
+    const evidenceFile = await prisma.evidenceFile.findFirst({
+      where: { id: evidenceFileId, employeeId: employee.id },
+      select: { id: true },
+    });
+    if (!evidenceFile) {
+      return NextResponse.json({ message: "The uploaded evidence file does not exist." }, { status: 400 });
+    }
+  }
+
   const activity = await prisma.activity.create({
     data: {
       employeeId: employee.id,
@@ -201,6 +225,7 @@ export async function POST(request: Request) {
       remarks: optionalText(body.remarks),
       workLocation: optionalText(body.workLocation),
       evidenceLink: optionalText(body.evidenceLink),
+      evidenceFileId,
       submittedAt:
         submissionStatus === SubmissionStatus.SUBMITTED ? new Date() : null,
     },
@@ -213,6 +238,8 @@ export async function POST(request: Request) {
       endTime: true,
         workLocation: true,
         evidenceLink: true,
+        evidenceFileId: true,
+        evidenceFile: { select: { fileName: true } },
       title: true,
       description: true,
       hours: true,
@@ -251,6 +278,11 @@ function displayWorkStatus(value: ActivityWorkStatus) {
     .split("_")
     .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function parseOptionalId(value: unknown) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
 function calculateHours(startValue: unknown, endValue: unknown) {
   if (typeof startValue !== "string" || typeof endValue !== "string" || !/^\d{2}:\d{2}$/.test(startValue) || !/^\d{2}:\d{2}$/.test(endValue)) return null;

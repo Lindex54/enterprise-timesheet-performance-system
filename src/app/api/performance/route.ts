@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   const periodEnd = new Date(Date.UTC(year, month, 1));
   const trendStart = new Date(Date.UTC(year, month - 7, 1));
 
-  const [activities, trendActivities, timesheet] = await Promise.all([
+  const [activities, trendActivities, timesheet, performancePeriod] = await Promise.all([
     prisma.activity.findMany({
       where: {
         employeeId: employee.id,
@@ -48,7 +48,20 @@ export async function GET(request: Request) {
     }),
     prisma.timesheet.findUnique({
       where: { employeeId_month_year: { employeeId: employee.id, month, year } },
-      select: { expectedHours: true },
+      select: {
+        expectedHours: true,
+        status: true,
+        supervisorFeedback: true,
+        reviewedAt: true,
+        reviewedBy: { select: { firstName: true, lastName: true } },
+      },
+    }),
+    prisma.performancePeriod.findUnique({
+      where: { employeeId_month_year: { employeeId: employee.id, month, year } },
+      select: {
+        supervisorComment: true,
+        metrics: { select: { name: true, score: true } },
+      },
     }),
   ]);
 
@@ -64,13 +77,21 @@ export async function GET(request: Request) {
 
     return {
       month: new Intl.DateTimeFormat("en", { month: "long", timeZone: "UTC" }).format(date),
-      score: buildOverallScore(buildSummary(monthActivities, DEFAULT_EXPECTED_HOURS)),
+      score: buildOverallScore(buildSummary(monthActivities, DEFAULT_EXPECTED_HOURS), null),
     };
   });
 
   return NextResponse.json({
     summary,
-    overallScore: buildOverallScore(summary),
+    overallScore: buildOverallScore(summary, performancePeriod),
+    qualityScore: metricScore(performancePeriod, "Quality of output"),
+    supervisorReview: {
+      score: metricScore(performancePeriod, "Supervisor assessment"),
+      feedback: timesheet?.supervisorFeedback ?? performancePeriod?.supervisorComment ?? "No supervisor feedback has been recorded for this period.",
+      status: timesheet?.status ?? "DRAFT",
+      reviewer: timesheet?.reviewedBy ? `${timesheet.reviewedBy.firstName} ${timesheet.reviewedBy.lastName}` : "Not yet reviewed",
+      reviewedAt: timesheet?.reviewedAt?.toISOString() ?? null,
+    },
     workCategories: buildWorkCategories(activities, summary.totalHours),
     achievements: activities
       .filter((activity) => activity.workStatus === ActivityWorkStatus.COMPLETED)
@@ -135,16 +156,26 @@ function buildSummary(activities: ActivityRecord[], expectedHours: number) {
   };
 }
 
-function buildOverallScore(summary: ReturnType<typeof buildSummary>) {
+function buildOverallScore(
+  summary: ReturnType<typeof buildSummary>,
+  performancePeriod: { metrics: { name: string; score: { toNumber(): number } }[] } | null,
+) {
   if (summary.totalActivities === 0) return 0;
 
   return Math.round(
     summary.taskCompletionRate * 0.3 +
       summary.timesheetSubmissionRate * 0.2 +
-      84 * 0.25 +
       summary.productivityRate * 0.15 +
-      86 * 0.1,
+      metricScore(performancePeriod, "Quality of output") * 0.15 +
+      metricScore(performancePeriod, "Supervisor assessment") * 0.2,
   );
+}
+
+function metricScore(
+  performancePeriod: { metrics: { name: string; score: { toNumber(): number } }[] } | null,
+  name: string,
+) {
+  return performancePeriod?.metrics.find((metric) => metric.name === name)?.score.toNumber() ?? 0;
 }
 
 function buildWorkCategories(activities: ActivityRecord[], totalHours: number) {

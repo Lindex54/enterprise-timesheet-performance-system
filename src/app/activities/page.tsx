@@ -9,6 +9,7 @@ import {
   Save,
   Pencil,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import DashboardShell from "../../components/layout/DashboardShell";
@@ -24,6 +25,8 @@ type Activity = {
   endTime: string;
   workLocation: string;
   evidenceLink: string;
+  evidenceFileId: number | null;
+  evidenceFileName: string;
   project: string;
   activity: string;
   description: string;
@@ -48,13 +51,24 @@ type Notification = {
   message: string;
 };
 
+const workLocations = [
+  "E-Learning Center",
+  "Reference/Information Desk",
+  "Office",
+  "Remote",
+] as const;
+
+const activitiesPerPage = 10;
+
 const emptyForm = {
   date: "",
   dueDate: "",
   startTime: "",
   endTime: "",
   workLocation: "",
+  otherWorkLocation: "",
   evidenceLink: "",
+  evidenceFileId: "",
   project: "",
   activity: "",
   description: "",
@@ -73,8 +87,13 @@ export default function ActivitiesPage() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
+  const [evidenceFileName, setEvidenceFileName] = useState("");
+  const [evidenceInputKey, setEvidenceInputKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
+  const [selectedMonth, setSelectedMonth] = useState("latest");
+  const [historyPage, setHistoryPage] = useState(1);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<Activity | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -126,6 +145,35 @@ export default function ActivitiesPage() {
     });
   }
 
+  async function handleEvidenceFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingEvidence(true);
+    setMessage("");
+    try {
+      const uploadData = new FormData();
+      uploadData.append("evidenceFile", file);
+      const response = await fetch("/api/evidence-upload", {
+        method: "POST",
+        body: uploadData,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? "Unable to upload the evidence file.");
+
+      setFormData((current) => ({ ...current, evidenceFileId: String(data.id) }));
+      setEvidenceFileName(data.fileName);
+      showNotification("success", "Evidence file uploaded", "The file will be attached when you save the activity.");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unable to upload the evidence file.";
+      setMessage(errorMessage);
+      showNotification("error", "Evidence file was not uploaded", errorMessage);
+      setEvidenceInputKey((key) => key + 1);
+    } finally {
+      setIsUploadingEvidence(false);
+    }
+  }
+
   async function saveActivity(submissionStatus: "Draft" | "Submitted") {
     const requiredFields = [
       ["date", formData.date, "date"],
@@ -137,15 +185,19 @@ export default function ActivitiesPage() {
       ["description", formData.description, "description"],
     ] as const;
     const missingField = requiredFields.find(([, value]) => !value);
+    const otherLocationIsMissing =
+      formData.workLocation === "Other" && !formData.otherWorkLocation.trim();
 
-    if (missingField || !formData.hours) {
-      const fieldLabel = missingField?.[2] ?? "valid start and end times";
+    if (missingField || !formData.hours || otherLocationIsMissing) {
+      const fieldLabel = otherLocationIsMissing
+        ? "other work location"
+        : missingField?.[2] ?? "valid start and end times";
       const validationMessage = `Please provide the ${fieldLabel} before updating this draft.`;
       setMessage(validationMessage);
       showNotification("error", "Activity was not saved", validationMessage);
       window.setTimeout(() => {
         const field = document.querySelector<HTMLElement>(
-          `[name="${missingField?.[0] ?? "startTime"}"]`,
+          `[name="${otherLocationIsMissing ? "otherWorkLocation" : missingField?.[0] ?? "startTime"}"]`,
         );
         field?.scrollIntoView({ behavior: "smooth", block: "center" });
         field?.focus();
@@ -158,7 +210,15 @@ export default function ActivitiesPage() {
       const response = await fetch(editingId ? `/api/activities/${editingId}` : "/api/activities", {
         method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, projectId: Number(formData.project), submissionStatus }),
+        body: JSON.stringify({
+          ...formData,
+          workLocation:
+            formData.workLocation === "Other"
+              ? formData.otherWorkLocation.trim()
+              : formData.workLocation,
+          projectId: Number(formData.project),
+          submissionStatus,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message ?? "Unable to save the activity.");
@@ -168,6 +228,8 @@ export default function ActivitiesPage() {
           : [data.activity, ...current],
       );
       setFormData(emptyForm);
+      setEvidenceFileName("");
+      setEvidenceInputKey((key) => key + 1);
       setEditingId(null);
       setMessage(data.message);
       showNotification("success", editingId ? "Draft updated successfully" : submissionStatus === "Draft" ? "Draft saved successfully" : "Activity submitted successfully", data.message);
@@ -185,13 +247,33 @@ export default function ActivitiesPage() {
     void saveActivity("Submitted");
   }
 
+  const availableMonths = useMemo(
+    () => Array.from(new Set(activities.map((activity) => activity.date.slice(0, 7)))).sort().reverse(),
+    [activities],
+  );
+
+  const activeMonth =
+    selectedMonth === "latest" ? (availableMonths[0] ?? "") : selectedMonth;
+
   const filteredActivities = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
     return activities.filter((item) =>
+      item.date.slice(0, 7) === activeMonth &&
       (!search || item.activity.toLowerCase().includes(search) || item.description.toLowerCase().includes(search) || item.project.toLowerCase().includes(search)) &&
       (statusFilter === "All statuses" || item.status === statusFilter),
     );
-  }, [activities, searchTerm, statusFilter]);
+  }, [activities, activeMonth, searchTerm, statusFilter]);
+
+  const historyPageCount = Math.max(1, Math.ceil(filteredActivities.length / activitiesPerPage));
+  const currentHistoryPage = Math.min(historyPage, historyPageCount);
+  const paginatedActivities = filteredActivities.slice(
+    (currentHistoryPage - 1) * activitiesPerPage,
+    currentHistoryPage * activitiesPerPage,
+  );
+  const historyStart = filteredActivities.length
+    ? (currentHistoryPage - 1) * activitiesPerPage + 1
+    : 0;
+  const historyEnd = Math.min(currentHistoryPage * activitiesPerPage, filteredActivities.length);
 
   function editDraft(activity: Activity) {
     setEditingId(activity.id);
@@ -200,8 +282,16 @@ export default function ActivitiesPage() {
       dueDate: activity.dueDate,
       startTime: activity.startTime,
       endTime: activity.endTime,
-      workLocation: activity.workLocation,
+      workLocation: workLocations.includes(activity.workLocation as (typeof workLocations)[number])
+        ? activity.workLocation
+        : activity.workLocation
+          ? "Other"
+          : "",
+      otherWorkLocation: workLocations.includes(activity.workLocation as (typeof workLocations)[number])
+        ? ""
+        : activity.workLocation,
       evidenceLink: activity.evidenceLink,
+      evidenceFileId: activity.evidenceFileId ? String(activity.evidenceFileId) : "",
       project: String(activity.projectId),
       activity: activity.activity,
       description: activity.description,
@@ -212,6 +302,8 @@ export default function ActivitiesPage() {
       challenges: activity.challenges,
       remarks: activity.remarks,
     });
+    setEvidenceFileName("");
+    setEvidenceInputKey((key) => key + 1);
     setSelectedActivity(null);
     setMessage("Editing draft. Make your changes and click Update draft.");
     window.setTimeout(() => document.getElementById("activity-form")?.scrollIntoView({ behavior: "smooth" }), 0);
@@ -370,13 +462,25 @@ export default function ActivitiesPage() {
             <FormField label="Work location">
               <select name="workLocation" value={formData.workLocation} onChange={handleChange} className="form-input">
                 <option value="">Select work location</option>
-                <option value="E-Learning Center">E-Learning Center</option>
-                <option value="Reference/Information Desk">Reference/Information Desk</option>
-                <option value="Office">Office</option>
-                <option value="Remote">Remote</option>
+                {workLocations.map((location) => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
                 <option value="Other">Other</option>
               </select>
             </FormField>
+
+            {formData.workLocation === "Other" && (
+              <FormField label="Specify other work location" required>
+                <input
+                  type="text"
+                  name="otherWorkLocation"
+                  value={formData.otherWorkLocation}
+                  onChange={handleChange}
+                  placeholder="Enter the work location"
+                  className="form-input"
+                />
+              </FormField>
+            )}
 
             <FormField label="Evidence link">
               <input
@@ -387,6 +491,22 @@ export default function ActivitiesPage() {
                 placeholder="https://example.com/evidence"
                 className="form-input"
               />
+            </FormField>
+
+            <FormField label="Upload evidence file">
+              <div className="flex items-center gap-3">
+                <input
+                  key={evidenceInputKey}
+                  type="file"
+                  onChange={handleEvidenceFileChange}
+                  disabled={isUploadingEvidence || isSaving}
+                  className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed"
+                />
+                {isUploadingEvidence && <Upload className="shrink-0 animate-pulse text-blue-600" size={20} aria-label="Uploading evidence file" />}
+              </div>
+              {evidenceFileName && (
+                <p className="mt-2 text-xs font-medium text-emerald-700">{evidenceFileName} uploaded</p>
+              )}
             </FormField>
 
             <FormField label="Project or work area" required>
@@ -513,8 +633,14 @@ export default function ActivitiesPage() {
           <div className="mt-7 flex flex-col-reverse justify-end gap-3 border-t border-slate-200 pt-6 sm:flex-row">
             <button
               type="button"
-              onClick={() => { setFormData(emptyForm); setEditingId(null); }}
-              className="rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              disabled={isUploadingEvidence || isSaving}
+              onClick={() => {
+                setFormData(emptyForm);
+                setEditingId(null);
+                setEvidenceFileName("");
+                setEvidenceInputKey((key) => key + 1);
+              }}
+              className="rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Clear form
             </button>
@@ -522,7 +648,7 @@ export default function ActivitiesPage() {
             <button
               type="button"
               onClick={() => void saveActivity("Draft")}
-              disabled={isSaving}
+              disabled={isSaving || isUploadingEvidence}
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-600 px-5 py-3 text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
             >
               <Save size={18} />
@@ -531,11 +657,11 @@ export default function ActivitiesPage() {
 
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || isUploadingEvidence}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
             >
               <CheckCircle2 size={18} />
-              {isSaving ? "Saving..." : "Submit activity"}
+              {isSaving ? "Saving..." : isUploadingEvidence ? "Uploading evidence..." : "Submit activity"}
             </button>
           </div>
         </form>
@@ -549,28 +675,48 @@ export default function ActivitiesPage() {
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              Recently recorded daily activities.
+              {activeMonth ? `Activities recorded in ${formatMonth(activeMonth)}.` : "No activities recorded yet."}
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={selectedMonth}
+              onChange={(event) => {
+                setSelectedMonth(event.target.value);
+                setHistoryPage(1);
+              }}
+              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
+              aria-label="Select activity month"
+            >
+              <option value="latest">Latest month</option>
+              {availableMonths.map((month) => (
+                <option key={month} value={month}>{formatMonth(month)}</option>
+              ))}
+            </select>
             <input
               type="search"
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setHistoryPage(1);
+              }}
               placeholder="Search activities..."
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
 
             <select
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                setHistoryPage(1);
+              }}
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
             >
               <option>All statuses</option>
               <option>Draft</option>
               <option>Submitted</option>
-              <option>In progress</option>
+              <option>In Progress</option>
               <option>Completed</option>
             </select>
           </div>
@@ -597,7 +743,7 @@ export default function ActivitiesPage() {
               {!isLoading && filteredActivities.length === 0 && (
                 <tr><td colSpan={7} className="px-6 py-10 text-center text-slate-500">No activities found.</td></tr>
               )}
-              {filteredActivities.map((activity) => (
+              {paginatedActivities.map((activity) => (
                 <tr key={activity.id} className="hover:bg-slate-50">
                   <td className="whitespace-nowrap px-6 py-4 text-slate-600">
                     {formatDate(activity.date)}
@@ -643,6 +789,33 @@ export default function ActivitiesPage() {
             </tbody>
           </table>
         </div>
+
+        {!isLoading && filteredActivities.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              Showing {historyStart}–{historyEnd} of {filteredActivities.length} activities
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={currentHistoryPage === 1}
+                onClick={() => setHistoryPage((page) => Math.max(1, page - 1))}
+                className="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="whitespace-nowrap">Page {currentHistoryPage} of {historyPageCount}</span>
+              <button
+                type="button"
+                disabled={currentHistoryPage === historyPageCount}
+                onClick={() => setHistoryPage((page) => Math.min(historyPageCount, page + 1))}
+                className="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </section>
       {selectedActivity && (
         <div
@@ -672,7 +845,15 @@ export default function ActivitiesPage() {
               <div className="sm:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Evidence link</p>
                 {selectedActivity.evidenceLink ? (
-                  <a href={selectedActivity.evidenceLink} target="_blank" rel="noreferrer" className="mt-1 block break-all text-sm font-medium text-blue-600 underline hover:text-blue-700">{selectedActivity.evidenceLink}</a>
+                  <a href={selectedActivity.evidenceLink} target="_blank" rel="noreferrer" className="mt-1 block break-all text-sm font-medium text-blue-600 underline hover:text-blue-700">Open evidence</a>
+                ) : (
+                  <p className="mt-1 text-sm text-slate-800">Not provided</p>
+                )}
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Evidence file</p>
+                {selectedActivity.evidenceFileId ? (
+                  <a href={`/api/evidence-files/${selectedActivity.evidenceFileId}`} className="mt-1 block break-all text-sm font-medium text-blue-600 underline hover:text-blue-700">{selectedActivity.evidenceFileName}</a>
                 ) : (
                   <p className="mt-1 text-sm text-slate-800">Not provided</p>
                 )}
@@ -866,6 +1047,14 @@ function formatDate(date: string) {
     year: "numeric",
   }).format(new Date(`${date}T00:00:00`));
 }
+
+function formatMonth(month: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${month}-01T00:00:00`));
+}
+
 function calculateDuration(startTime: string, endTime: string) {
   if (!startTime || !endTime) return "";
 

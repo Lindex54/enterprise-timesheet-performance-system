@@ -39,12 +39,9 @@ type PerformanceData = {
   achievements: string[];
   challenges: string[];
   trend: { month: string; score: number }[];
+  qualityScore: number;
+  supervisorReview: { score: number; feedback: string; status: string; reviewer: string; reviewedAt: string | null };
 };
-
-const staticKpis = [
-  { id: "quality", title: "Quality of output", description: "Quality, accuracy and completeness of completed work.", score: 84, weight: 25 },
-  { id: "supervisor", title: "Supervisor rating", description: "Performance rating provided by the immediate supervisor.", score: 86, weight: 10 },
-];
 
 export default function PerformancePage() {
   const [selectedMonth, setSelectedMonth] = useState("July");
@@ -80,8 +77,9 @@ export default function PerformancePage() {
     { id: "completion", title: "Task completion", description: "Progress across the activities recorded for this month.", score: summary.taskCompletionRate, weight: 30 },
     { id: "submission", title: "Timesheet submission", description: "Daily activities submitted from the recorded monthly work.", score: summary.timesheetSubmissionRate, weight: 20 },
     { id: "productivity", title: "Productivity", description: "Recorded hours compared with the expected monthly hours.", score: summary.productivityRate, weight: 15 },
-    ...staticKpis,
-  ], [summary]);
+    { id: "quality", title: "Quality of output", description: "Quality, accuracy and completeness of completed work.", score: data?.qualityScore ?? 0, weight: 15 },
+    { id: "supervisor", title: "Supervisor assessment", description: "Rating recorded after the supervisor reviews the monthly timesheet.", score: data?.supervisorReview.score ?? 0, weight: 20 },
+  ], [data, summary]);
   const previousScore = data?.trend.at(-2)?.score ?? 0;
   const scoreChange = overallScore - previousScore;
   const highestScore = Math.max(...(data?.trend.map((item) => item.score) ?? [0]));
@@ -126,7 +124,7 @@ export default function PerformancePage() {
             <PerformanceGauge score={overallScore} />
             <div>
               <h3 className="text-xl font-bold text-slate-900">{classification(overallScore)} monthly performance</h3>
-              <p className="mt-3 leading-7 text-slate-600">This score uses your saved activities, submission status and recorded working hours. Quality and supervisor rating will update once those workflows are available.</p>
+              <p className="mt-3 leading-7 text-slate-600">This score is calculated from completed work, submission status, recorded hours, quality assessment and the supervisor&apos;s monthly review.</p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <MetricBox label="Previous score" value={`${previousScore}%`} />
                 <MetricBox label="Performance change" value={`${scoreChange >= 0 ? "+" : ""}${scoreChange}%`} positive={scoreChange >= 0} />

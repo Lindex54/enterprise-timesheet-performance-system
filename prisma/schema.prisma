@@ -131,6 +131,7 @@ model Employee {
   assignedTasks      Task[]              @relation("TaskAssignee")
   createdTasks       Task[]              @relation("TaskAssigner")
   activities         Activity[]
+  evidenceFiles      EvidenceFile[]
   timesheets         Timesheet[]         @relation("EmployeeTimesheets")
   reviewedTimesheets Timesheet[]         @relation("TimesheetReviewer")
   performancePeriods PerformancePeriod[]
@@ -218,6 +219,7 @@ model Activity {
   endTime          DateTime?          @db.Time(0)
   workLocation     String?            @db.VarChar(191)
   evidenceLink     String?            @db.VarChar(1000)
+  evidenceFileId   Int?
   title            String             @db.VarChar(255)
   description      String             @db.Text
   hours            Decimal            @db.Decimal(6, 2)
@@ -235,6 +237,7 @@ model Activity {
   project          Project            @relation(fields: [projectId], references: [id], onDelete: Restrict)
   task             Task?              @relation(fields: [taskId], references: [id], onDelete: SetNull)
   timesheet        Timesheet?         @relation(fields: [timesheetId], references: [id], onDelete: SetNull)
+  evidenceFile     EvidenceFile?      @relation(fields: [evidenceFileId], references: [id], onDelete: SetNull)
 
   @@index([employeeId, activityDate])
   @@index([employeeId, dueDate])
@@ -242,7 +245,23 @@ model Activity {
   @@index([taskId])
   @@index([timesheetId])
   @@index([submissionStatus])
+  @@index([evidenceFileId])
   @@map("activities")
+}
+
+model EvidenceFile {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  fileName   String   @db.VarChar(255)
+  mimeType   String?  @db.VarChar(255)
+  fileSize   Int
+  data       Bytes    @db.LongBlob
+  createdAt  DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  activities Activity[]
+
+  @@index([employeeId])
+  @@map("evidence_files")
 }
 
 model Timesheet {
