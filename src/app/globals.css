@@ -15,6 +15,11 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
 button,
 input,
 select,
@@ -46,11 +51,6 @@ textarea {
 }
 
 @media print {
-  @page {
-    size: 210mm 297mm;
-    margin: 10mm;
-  }
-
   body {
     background: white;
   }
@@ -188,6 +188,15 @@ button:disabled,
 
 .activity-notification-progress {
   animation: activity-notification-countdown 4.5s linear forwards;
+}
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

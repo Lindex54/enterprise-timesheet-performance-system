@@ -8,6 +8,7 @@ import DashboardShell from "../../components/layout/DashboardShell";
 import RecentActivities from "../../components/dashboard/RecentActivities";
 import StatCard from "../../components/dashboard/StatCard";
 import TaskProgress from "../../components/dashboard/TaskProgress";
+import TimeBasedGreeting from "../../components/dashboard/TimeBasedGreeting";
 import WeeklyActivityOverview from "../../components/dashboard/WeeklyActivityOverview";
 import { calculateOverallCompletion } from "../../../lib/completion-progress";
 
@@ -25,9 +26,7 @@ export default function DashboardPage() {
             Sunday, 26 July 2026
           </p>
 
-          <h1 className="mt-1 text-2xl font-bold text-slate-900 lg:text-3xl">
-            Good afternoon, Godwin
-          </h1>
+          <TimeBasedGreeting name="Godwin" />
 
           <p className="mt-1 text-slate-500">
             Here is an overview of your work and performance this month.
