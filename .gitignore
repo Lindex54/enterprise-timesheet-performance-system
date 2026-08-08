@@ -53,6 +53,8 @@ Thumbs.db
 
 
 # Local AI agent settings
+AGENTS.md
+CLAUDE.md
 /.agents/
 /.claude/
 /.windsurf/
