@@ -1,0 +1,37 @@
+import { Bell, ChevronDown, Menu, Search } from "lucide-react";
+
+export default function HrTopbar() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+      <div className="flex h-20 items-center justify-between gap-4 px-5 lg:px-8">
+        <div className="flex items-center gap-3">
+          <button type="button" aria-label="Open navigation" className="rounded-lg border border-slate-200 p-2 text-slate-600 lg:hidden">
+            <Menu size={21} />
+          </button>
+          <div>
+            <p className="text-sm font-semibold text-slate-500">HR Workspace</p>
+            <p className="font-bold text-slate-900">People &amp; Performance</p>
+          </div>
+        </div>
+
+        <div className="hidden max-w-md flex-1 md:block">
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input type="search" placeholder="Search employees, departments or reports..." className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100" />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button type="button" aria-label="View notifications" className="relative rounded-lg border border-slate-200 p-2.5 text-slate-600 transition hover:bg-slate-50">
+            <Bell size={20} /><span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
+          </button>
+          <button type="button" className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 transition hover:bg-slate-50">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">JN</div>
+            <div className="hidden text-left sm:block"><p className="text-sm font-bold text-slate-900">HR Administrator</p><p className="text-xs text-slate-500">Human Resources</p></div>
+            <ChevronDown size={17} className="hidden text-slate-400 sm:block" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
